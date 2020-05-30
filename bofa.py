@@ -1,10 +1,9 @@
-
+import BofaToken
 import discord, asyncio, youtube_dl
 import time, re, mysql.connector
 from datetime import datetime 
 from discord.ext import commands
 
-TOKEN = 'Njk0NzM5NTcxNzQ5MTU5MDcy.XoQA2g.SnRN049vlX4TN74UhUMtOEceu7c'
 bot = commands.Bot(command_prefix='!')
 
 youtube_dl.utils.bug_reports_message = lambda: ''
@@ -244,4 +243,4 @@ async def on_voice_state_update(member, before, after):
         vc.stop()
         await vc.disconnect()
 
-bot.run(TOKEN)
+bot.run(BofaToken.Token)

@@ -1,15 +1,10 @@
-
-import discord
-import time, re
-import asyncio
+import BofaToken
+import discord, time, re, asyncio
 from discord.ext import commands
 import youtube_dl
 import mysql.connector
 
-TOKEN = 'Njk0NzM5NTcxNzQ5MTU5MDcy.XoQA2g.SnRN049vlX4TN74UhUMtOEceu7c'
-
 bot = commands.Bot(command_prefix='$')
-
 
 @bot.event
 async def on_ready():
@@ -41,4 +36,4 @@ async def on_message(message):
     elif 'bofa' in message.content:
         await message.channel.send('Whats bofa?')
 
-bot.run(TOKEN)
+bot.run(BofaToken.Token)
