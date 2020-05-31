@@ -1,4 +1,4 @@
-import BotToken
+import Config
 import discord, time, re, asyncio
 from discord.ext import commands
 import youtube_dl
@@ -36,4 +36,4 @@ async def on_message(message):
     elif 'bofa' in message.content:
         await message.channel.send('Whats bofa?')
 
-bot.run(BotToken.Token)
+bot.run(Config.Token)

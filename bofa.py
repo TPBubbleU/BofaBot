@@ -1,4 +1,4 @@
-import BotToken
+import Config
 import discord, asyncio, youtube_dl
 import time, re, mysql.connector
 from datetime import datetime 
@@ -59,7 +59,7 @@ def get_proper_member(mentionstr):
 
 
 def get_mysql_db():
-    mydb =  mysql.connector.connect(host="localhost",user="root",passwd="w")
+    mydb =  mysql.connector.connect(Config.mysqlhost, Config.mysqluser, Config.passwd)
     cursor = mydb.cursor()
     cursor.execute("USE discord;")
     return cursor, mydb
@@ -243,4 +243,4 @@ async def on_voice_state_update(member, before, after):
         vc.stop()
         await vc.disconnect()
 
-bot.run(BotToken.Token)
+bot.run(Config.Token)
