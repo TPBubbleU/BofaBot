@@ -1,4 +1,4 @@
-import BofaToken
+import BotToken
 import discord, asyncio, youtube_dl
 import time, re, mysql.connector
 from datetime import datetime 
@@ -243,4 +243,4 @@ async def on_voice_state_update(member, before, after):
         vc.stop()
         await vc.disconnect()
 
-bot.run(BofaToken.Token)
+bot.run(BotToken.Token)

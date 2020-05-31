@@ -1,4 +1,4 @@
-import BofaToken
+import BotToken
 import discord, time, re, asyncio
 from discord.ext import commands
 import youtube_dl
@@ -8,7 +8,7 @@ bot = commands.Bot(command_prefix='$')
 
 @bot.event
 async def on_ready():
-    print('Bot 2 Logged on as', bot2.user)
+    print('Bot 2 Logged on as', bot.user)
 
 @bot.event
 async def on_message(message):
@@ -36,4 +36,4 @@ async def on_message(message):
     elif 'bofa' in message.content:
         await message.channel.send('Whats bofa?')
 
-bot.run(BofaToken.Token)
+bot.run(BotToken.Token)
