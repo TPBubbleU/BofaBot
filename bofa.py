@@ -72,6 +72,30 @@ def close_mysql_db(mydb, cursor, commit):
     mydb.close()
 
 
+async def areYouEvenSippinThough(ctx, cursor, mydb):
+    # We are here because a User has activated a command when they shouldn't have
+    newmessage = await ctx.send("Are you even sippin though?")
+    await newmessage.add_reaction("🇾")
+    await newmessage.add_reaction("🇳")
+    try:
+        for i in range(10):
+            reaction, user = await bot.wait_for('reaction_add', timeout=30)
+            if user == bot.user:
+                continue
+            print("Got a react from " + str(user))
+            if str(user) == str(ctx.author):
+                if reaction.emoji == "🇾":
+                    print("Adding user " + str(user) + " to the sippin table")
+                    cursor.execute("INSERT INTO sips VALUES ('" + str(user) + "', 0, '" + str(datetime.now()) + "')")
+                    await ctx.send("Nice, " + str(ctx.author) + " is now sippin")
+                    return
+                break
+    except asyncio.TimeoutError:
+        print('We timed out on the question "Are you even sippin though?"')
+    await ctx.send("I guess you aren't sippin then")
+    close_mysql_db(mydb=mydb, cursor=cursor, commit=True)
+
+
 @bot.command()
 async def sipadd(ctx, sips: int, mention=None):
     print('Trying to sipadd over here')
@@ -98,12 +122,12 @@ async def sipadd(ctx, sips: int, mention=None):
         return close_mysql_db(mydb=mydb, cursor=cursor, commit=False)
 
     # Lets add some sips
-	
-	# Doing things for a single sipper
+    
+    # Doing things for a single sipper
     if mention is not None:
         cursor.execute("UPDATE sips SET CurrentTotal = CurrentTotal + " + str(sips) + " WHERE Username IN ('" + str(user) + "')")
         await ctx.send(str(sips) + " sips added to " + mention)
-	# Doing things for all sippers
+    # Doing things for all sippers
     else:
         cursor.execute("UPDATE sips SET CurrentTotal = CurrentTotal + " + str(sips) + " WHERE Username IN ('" + "','".join(last5HoursUsers) + "')")
         await ctx.send(str(sips) + " sips added to " + " and ".join(last5HoursUsers))
@@ -114,9 +138,12 @@ async def sipadd(ctx, sips: int, mention=None):
 async def whosesippin(ctx):
     print('Trying to see whose sipping over here')
     cursor, mydb = get_mysql_db()
+	
+	# Get sip data from the database
     cursor.execute("SELECT Username FROM sips")
     sippers = [i[0] for i in cursor.fetchall()]
     
+	# Display Message and add reactions and wait for users to add thier own
     newmessage = await ctx.send("Who is all sipping? Are you sipping? Hit me with that 🇾 if you are.")
     await newmessage.add_reaction("🇾")
     await newmessage.add_reaction("🇳")
@@ -124,16 +151,17 @@ async def whosesippin(ctx):
     try:
         for i in range(10):
             reaction, user = await bot.wait_for('reaction_add', timeout=30)
-            print("Got a react from " + str(user))
-			
+            if user == bot.user:
+                continue
+                            
             if reaction.emoji == "🇾":
-			
-				# Lets get them added to the count table
-				if not (str(user) in sippers):
-					print("adding user " + str(user) + " into sips table")
-					cursor.execute("INSERT INTO sips VALUES ('" + str(user) + "', 0, '" + str(datetime.now()) + "')")
-				
-				CurrentSippers.append(str(user))
+            
+                # Lets get them added to the count table
+                if not (str(user) in sippers):
+                    print("adding user " + str(user) + " into sips table")
+                    cursor.execute("INSERT INTO sips VALUES ('" + str(user) + "', 0, '" + str(datetime.now()) + "')")
+                
+                CurrentSippers.append(str(user))
             
                 print("Adding user " + str(user) + " to the sippin table")
                 cursor.execute("UPDATE sips SET last_sip = '" + str(datetime.now()) + "'")
@@ -144,58 +172,64 @@ async def whosesippin(ctx):
     
 @bot.command()
 async def mysips(ctx, mention=None):
-    print('trying to check someones sips')
+    print('Trying to check someones sips')
     cursor, mydb = get_mysql_db()
 
+    # Setup the correct user variable
     if mention is not None:
         member = get_proper_member(mention)
         user = bot.get_user(member.id)
     else:
         user = str(ctx.author)
 
+    # Get database information
     cursor.execute("SELECT CurrentTotal FROM sips WHERE Username = '" + str(user) + "'")
     record = cursor.fetchone()
     if not record:
-        newmessage = await ctx.send("Are you even sippin though?")
-        await newmessage.add_reaction("🇾")
-        await newmessage.add_reaction("🇳")
-        try:
-            for i in range(10):
-                reaction, user = await bot.wait_for('reaction_add', timeout=30)
-                if user == bot.user:
-                    continue
-                print("Got a react from " + str(user))
-                if str(user) == str(ctx.author):
-                    if reaction.emoji == "🇾":
-                        print("Adding user " + str(user) + " to the sippin table")
-                        cursor.execute("INSERT INTO sippin VALUES ('" + str(user) + "', '" + str(datetime.now()) + "')")
-                        cursor.execute("INSERT INTO sips VALUES ('" + str(user) + "',0)")
-                        await ctx.send(str(ctx.author) + " sips are currently at 0 ")
-                        return
-                    break
-        except asyncio.TimeoutError:
-            print('We timed out on the question "Are you even sippin though?"')
-        await ctx.send("I guess you aren't sippin then")
-        close_mysql_db(mydb=mydb, cursor=cursor, commit=True)
+        areYouEvenSippinThough(ctx, cursor, mydb)
         return
+		
+	# Display information back out
     await ctx.send(str(user) + " sips are currently at " + str(record[0]))
     close_mysql_db(mydb=mydb, cursor=cursor, commit=False)
     
 
 @bot.command()
-async def sipclear(ctx, mention=None):
+async def sipclear(ctx, sips:int=None, mention=None):
     print('trying to sipclear over here')
     cursor, mydb = get_mysql_db()
-
+    
+	# Setup the correct user variable
     if mention is not None:
         member = get_proper_member(mention)
         user = bot.get_user(member.id)
     else:
         user = str(ctx.author)
 
-    cursor.execute("UPDATE sips SET CurrentTotal = 0 WHERE Username IN ('" + str(user) + "')")
+    # Get database information
+    cursor.execute("SELECT CurrentTotal FROM sips WHERE Username = '" + str(user) + "'")
+    record = cursor.fetchone()
+    if not record:
+        areYouEvenSippinThough(ctx, cursor, mydb)
+        return
+    
+	# Setup the newTotal Variable that we will later put into the database
+	if sips:
+		# Check if user has cleared more sips that currently in database and lower it
+		if sips > record[0]: 
+			sips = record[0]
+		newTotal = 'CurrentTotal - ' + str(sips)
+	else:
+		newTotal = '0'
+	
+    cursor.execute("UPDATE sips SET CurrentTotal = " + newTotal + " WHERE Username IN ('" + str(user) + "')")
     close_mysql_db(mydb=mydb, cursor=cursor, commit=True)
-    await ctx.send(str(user) + "'s sips have been cleared")
+	
+	# Display information back to user 
+	if sips:
+        await ctx.send(str(user) + "'s sips have been cleared")
+	else:
+	    await ctx.send(str(user) + "'s sips have been lowered by " + str(sips))
 
 @bot.event
 async def on_ready():
