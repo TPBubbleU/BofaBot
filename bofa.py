@@ -74,58 +74,45 @@ def close_mysql_db(mydb, cursor, commit):
 
 @bot.command()
 async def sipadd(ctx, sips: int, mention=None):
-    print('trying to sipadd over here')
+    print('Trying to sipadd over here')
     cursor, mydb = get_mysql_db()
     
-    cursor.execute("SELECT DISTINCT Username FROM sippin WHERE TIMESTAMPDIFF(HOUR,ts,CURRENT_TIMESTAMP) < 9")
+    # Get sip data from the database
+    cursor.execute("SELECT DISTINCT Username, CurrentTotal, TIMESTAMPDIFF(HOUR,last_sip,CURRENT_TIMESTAMP) FROM sips")
     records = cursor.fetchall()
     usernames = [i[0] for i in records]
+    last5HoursUsers = [i[0] for i in records if i >= 5]
 
-    print(mention)
-
+    # If there is a Mention we need to make sure the user is setup in the database
     if mention is not None:
         member = get_proper_member(mention)
         user = bot.get_user(member.id)
-
+        
         if not(str(user) in usernames):
-            await ctx.send(str(mention) + " isn't even sippin though")
-            return close_mysql_db(mydb=mydb, cursor=cursor, commit=False)
+            print("Setting up User in the database")
+            cursor.execute("INSERT INTO sips VALUES ('" + str(user) + "', 0, '" + str(datetime.now()) + "')")
 
-    if not records:
+    # Lets early exit if there isn't a mention and no one has a last sip in the last 5 hours
+    if mention is None and not last5HoursUsers:
         await ctx.send("Nobody currently sippin though")
         return close_mysql_db(mydb=mydb, cursor=cursor, commit=False)
-    
-    cursor.execute("SELECT Username, CurrentTotal FROM sips")
-    records = cursor.fetchall()
-    CTUsers = [i[0] for i in records]
 
+    # Lets add some sips
+	
+	# Doing things for a single sipper
     if mention is not None:
-        # doing things for a single sipper
-        for i in CTUsers:
-            if i == str(user):
-                break
-        else:
-            print("adding user " + str(user) + " into sips table")
-            cursor.execute("INSERT INTO sips VALUES ('" + i + "',0)")
         cursor.execute("UPDATE sips SET CurrentTotal = CurrentTotal + " + str(sips) + " WHERE Username IN ('" + str(user) + "')")
         await ctx.send(str(sips) + " sips added to " + mention)
+	# Doing things for all sippers
     else:
-        # doing things for all sippers
-        for i in usernames:
-            for j in CTUsers:
-                if i == j:
-                    break
-            else:
-                print("adding user " + i + " into sips table")
-                cursor.execute("INSERT INTO sips VALUES ('" + i + "',0)")
-        cursor.execute("UPDATE sips SET CurrentTotal = CurrentTotal + " + str(sips) + " WHERE Username IN ('" + "','".join(usernames) + "')")
-        await ctx.send(str(sips) + " sips added to " + " and ".join(usernames))
+        cursor.execute("UPDATE sips SET CurrentTotal = CurrentTotal + " + str(sips) + " WHERE Username IN ('" + "','".join(last5HoursUsers) + "')")
+        await ctx.send(str(sips) + " sips added to " + " and ".join(last5HoursUsers))
     close_mysql_db(mydb=mydb, cursor=cursor, commit=True)
     
     
 @bot.command()
 async def whosesippin(ctx):
-    print('trying to see whose sipping over here')
+    print('Trying to see whose sipping over here')
     cursor, mydb = get_mysql_db()
     cursor.execute("SELECT Username FROM sips")
     sippers = [i[0] for i in cursor.fetchall()]
@@ -138,18 +125,20 @@ async def whosesippin(ctx):
         for i in range(10):
             reaction, user = await bot.wait_for('reaction_add', timeout=30)
             print("Got a react from " + str(user))
-            
-            # Lets get them added to the count table
-            if not (str(user) in sippers):
-                print("adding user " + str(user) + " into sips table")
-                cursor.execute("INSERT INTO sips VALUES ('" + str(user) + "',0)")
-            
-            CurrentSippers.append(str(user))
+			
             if reaction.emoji == "🇾":
+			
+				# Lets get them added to the count table
+				if not (str(user) in sippers):
+					print("adding user " + str(user) + " into sips table")
+					cursor.execute("INSERT INTO sips VALUES ('" + str(user) + "', 0, '" + str(datetime.now()) + "')")
+				
+				CurrentSippers.append(str(user))
+            
                 print("Adding user " + str(user) + " to the sippin table")
-                cursor.execute("INSERT INTO sippin VALUES ('" + str(user) + "', '" + str(datetime.now()) + "')")
+                cursor.execute("UPDATE sips SET last_sip = '" + str(datetime.now()) + "'")
     except asyncio.TimeoutError:
-        await ctx.send("I've got the following users as Sippin " + "','".join(CurrentSippers))
+        await ctx.send("I've got the following users as Sippin " + " and ".join(CurrentSippers))
     close_mysql_db(mydb=mydb, cursor=cursor, commit=True)
     
     
