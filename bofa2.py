@@ -63,10 +63,8 @@ async def on_message(message):
         m2 = re.compile('playtime=([^\s]*)').search(message.content)
         if m1 and m2:
             cursor, mydb = get_mysql_db()
-            cursor.execute("DELETE FROM walkon WHERE username = \""+str(message.author)+"\";")
-            sql_insert_query = "INSERT INTO walkon VALUES(\""+str(message.author)+"\",\""+m1.group(1)+"\","+m2.group(1)+");"
-            print(sql_insert_query)
-            cursor.execute(sql_insert_query)
+            cursor.execute('DELETE FROM walkon WHERE username = "' + str(message.author) + '"')
+            cursor.execute('INSERT INTO walkon VALUES("' + str(message.author) + '","' + m1.group(1) + '",' + m2.group(1) + ')')
             close_mysql_db(mydb=mydb, cursor=cursor, commit=False)
             await message.channel.send('I got you')
     elif 'bofa' in message.content:
