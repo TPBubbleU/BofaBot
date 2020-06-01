@@ -1,54 +1,15 @@
 import Config
-import discord, asyncio, youtube_dl
-import time, re, mysql.connector
+import discord, asyncio, time, re, mysql.connector
 from datetime import datetime 
 from discord.ext import commands
 
 bot = commands.Bot(command_prefix='!')
 
-youtube_dl.utils.bug_reports_message = lambda: ''
-ytdl_format_options = {
-    'format': 'bestaudio/best',
-    'outtmpl': '%(extractor)s-%(id)s-%(title)s.%(ext)s',
-    'restrictfilenames': True,
-    'noplaylist': True,
-    'nocheckcertificate': True,
-    'ignoreerrors': False,
-    'logtostderr': False,
-    'quiet': True,
-    'cookiefile': '/home/cheesy_george/cookies.txt',
-    'no_warnings': True,
-    'default_search': 'auto',
-    'source_address': '0.0.0.0' # bind to ipv4 since ipv6 addresses cause issues sometimes
-}
-ffmpeg_options = {
-    'options': '-vn'
-}
-
-ytdl = youtube_dl.YoutubeDL(ytdl_format_options)
-
-class YTDLSource(discord.PCMVolumeTransformer):
-    def __init__(self, source, *, data, volume=0.5):
-        super().__init__(source, volume)
-        self.data = data
-        self.title = data.get('title')
-        self.url = data.get('url')
-    @classmethod
-    async def from_url(cls, url, *, loop=None, stream=False):
-        loop = loop or asyncio.get_event_loop()
-        data = await loop.run_in_executor(None, lambda: ytdl.extract_info(url, download=not stream))
-        if 'entries' in data:
-            # take first item from a playlist
-            data = data['entries'][0]
-        filename = data['url'] if stream else ytdl.prepare_filename(data)
-        return cls(discord.FFmpegPCMAudio(filename, **ffmpeg_options), data=data)
-
-
-
 def get_proper_channel(channel_name):
     for channel in bot.get_all_channels():
         if channel.name == channel_name and channel.type is discord.ChannelType.voice:
             return channel
+
 
 def get_proper_member(mentionstr):
     for i in bot.get_all_members():
@@ -236,36 +197,5 @@ async def sipclear(ctx, sips:int=None, mention=None):
 @bot.event
 async def on_ready():
     print('Logged on as', bot.user)
-
-@bot.event
-async def on_voice_state_update(member, before, after):
-    voice_channel = get_proper_channel('bitches')
-    if before.channel is None and after.channel is voice_channel and member != bot.user:
-        print('User ' + str(member) + ' has joined the channel')
-
-        cursor, mydb = get_mysql_db()
-        cursor.execute("SELECT url, playtime FROM walkon WHERE username = '" + str(member) + "'")
-        record = cursor.fetchone()
-        if not record:
-            print("No record on file for User")
-            close_mysql_db(mydb=mydb, cursor=cursor, commit=False)
-            return
-            
-        url = record[0]
-        playtime = record[1]
-        close_mysql_db(mydb=mydb, cursor=cursor, commit=False)
-
-        for i in bot.voice_clients:
-            await i.disconnect()
-        vc = await voice_channel.connect()
-
-        source = await YTDLSource.from_url(url, loop=bot.loop)
-        vc.play(source, after=lambda e: print('Player error: %s' % e) if e else None)
-        time.sleep(playtime)
-        for i in range(30):
-            vc.source.volume = vc.source.volume - (0.5/30)
-            time.sleep(0.1)
-        vc.stop()
-        await vc.disconnect()
 
 bot.run(Config.Token)
