@@ -59,7 +59,7 @@ def get_proper_member(mentionstr):
 
 
 def get_mysql_db():
-    mydb =  mysql.connector.connect(Config.mysqlhost, Config.mysqluser, Config.passwd)
+    mydb =  mysql.connector.connect(Config.mysqlhost, Config.mysqluser, Config.mysqlpasswd)
     cursor = mydb.cursor()
     cursor.execute("USE discord;")
     return cursor, mydb
