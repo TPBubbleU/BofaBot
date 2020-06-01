@@ -105,7 +105,7 @@ async def sipadd(ctx, sips: int, mention=None):
     cursor.execute("SELECT DISTINCT Username, CurrentTotal, TIMESTAMPDIFF(HOUR,last_sip,CURRENT_TIMESTAMP) FROM sips")
     records = cursor.fetchall()
     usernames = [i[0] for i in records]
-    last5HoursUsers = [i[0] for i in records if int(i) >= 5]
+    last5HoursUsers = [i[0] for i in records if i[1] >= 5]
 
     # If there is a Mention we need to make sure the user is setup in the database
     if mention is not None:
