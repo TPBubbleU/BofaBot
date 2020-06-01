@@ -8,7 +8,9 @@ bot = commands.Bot(command_prefix='$')
 
 youtube_dl.utils.bug_reports_message = lambda: ''
 
-ytdl_format_options = {
+ytdl_options = {
+	'username': Config.ytldusername,
+	'password': Config.ytldpassword,
     'format': 'bestaudio/best',
     'outtmpl': '%(extractor)s-%(id)s-%(title)s.%(ext)s',
     'restrictfilenames': True,
@@ -26,7 +28,7 @@ ffmpeg_options = {
     'options': '-vn'
 }
 
-ytdl = youtube_dl.YoutubeDL(ytdl_format_options)
+ytdl = youtube_dl.YoutubeDL(ytdl_options)
 
 class YTDLSource(discord.PCMVolumeTransformer):
     def __init__(self, source, *, data, volume=0.5):
