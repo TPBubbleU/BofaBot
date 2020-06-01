@@ -227,9 +227,9 @@ async def sipclear(ctx, sips:int=None, mention=None):
     
     # Display information back to user 
     if sips:
-        await ctx.send(str(user) + "'s sips have been cleared")
+	    await ctx.send(str(user) + "'s sips have been lowered by " + str(sips))
     else:
-        await ctx.send(str(user) + "'s sips have been lowered by " + str(sips))
+        await ctx.send(str(user) + "'s sips have been cleared")
 
 @bot.event
 async def on_ready():
