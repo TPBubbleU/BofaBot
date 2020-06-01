@@ -86,7 +86,7 @@ async def areYouEvenSippinThough(ctx, cursor, mydb):
             if str(user) == str(ctx.author):
                 if reaction.emoji == "🇾":
                     print("Adding user " + str(user) + " to the sippin table")
-                    cursor.execute("INSERT INTO sips VALUES ('" + str(user) + "', 0, '" + str(datetime.now()) + "')")
+                    cursor.execute("INSERT INTO sips VALUES ('" + str(user) + "', 0, now())")
                     await ctx.send("Nice, " + str(ctx.author) + " is now sippin")
                     return
                 break
@@ -114,7 +114,7 @@ async def sipadd(ctx, sips: int, mention=None):
         
         if not(str(user) in usernames):
             print("Setting up User in the database")
-            cursor.execute("INSERT INTO sips VALUES ('" + str(user) + "', 0, '" + str(datetime.now()) + "')")
+            cursor.execute("INSERT INTO sips VALUES ('" + str(user) + "', 0, now())")
 
     # Lets early exit if there isn't a mention and no one has a last sip in the last 5 hours
     if mention is None and not last5HoursUsers:
@@ -126,10 +126,12 @@ async def sipadd(ctx, sips: int, mention=None):
     # Doing things for a single sipper
     if mention is not None:
         cursor.execute("UPDATE sips SET CurrentTotal = CurrentTotal + " + str(sips) + " WHERE Username IN ('" + str(user) + "')")
+		cursor.execute("UPDATE sips SET last_sip = now() WHERE Username IN ('" + str(user) + "')")
         await ctx.send(str(sips) + " sips added to " + mention)
     # Doing things for all sippers
     else:
         cursor.execute("UPDATE sips SET CurrentTotal = CurrentTotal + " + str(sips) + " WHERE Username IN ('" + "','".join(last5HoursUsers) + "')")
+		cursor.execute("UPDATE sips SET last_sip = now() WHERE Username IN ('" + "','".join(last5HoursUsers) + "')")
         await ctx.send(str(sips) + " sips added to " + " and ".join(last5HoursUsers))
     close_mysql_db(mydb=mydb, cursor=cursor, commit=True)
     
@@ -157,14 +159,14 @@ async def whosesippin(ctx):
             if reaction.emoji == "🇾":
             
                 # Lets get them added to the count table
-                if not (str(user) in sippers):
+                if not (str(user) not in sippers):
                     print("adding user " + str(user) + " into sips table")
-                    cursor.execute("INSERT INTO sips VALUES ('" + str(user) + "', 0, '" + str(datetime.now()) + "')")
+                    cursor.execute("INSERT INTO sips VALUES ('" + str(user) + "', 0, now())")
                 
                 CurrentSippers.append(str(user))
             
                 print("Adding user " + str(user) + " to the sippin table")
-                cursor.execute("UPDATE sips SET last_sip = '" + str(datetime.now()) + "'")
+                cursor.execute("UPDATE sips SET last_sip = now()")
     except asyncio.TimeoutError:
         await ctx.send("I've got the following users as Sippin " + " and ".join(CurrentSippers))
     close_mysql_db(mydb=mydb, cursor=cursor, commit=True)
