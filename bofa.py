@@ -138,12 +138,12 @@ async def sipadd(ctx, sips: int, mention=None):
 async def whosesippin(ctx):
     print('Trying to see whose sipping over here')
     cursor, mydb = get_mysql_db()
-	
-	# Get sip data from the database
+    
+    # Get sip data from the database
     cursor.execute("SELECT Username FROM sips")
     sippers = [i[0] for i in cursor.fetchall()]
     
-	# Display Message and add reactions and wait for users to add thier own
+    # Display Message and add reactions and wait for users to add thier own
     newmessage = await ctx.send("Who is all sipping? Are you sipping? Hit me with that 🇾 if you are.")
     await newmessage.add_reaction("🇾")
     await newmessage.add_reaction("🇳")
@@ -188,8 +188,8 @@ async def mysips(ctx, mention=None):
     if not record:
         areYouEvenSippinThough(ctx, cursor, mydb)
         return
-		
-	# Display information back out
+        
+    # Display information back out
     await ctx.send(str(user) + " sips are currently at " + str(record[0]))
     close_mysql_db(mydb=mydb, cursor=cursor, commit=False)
     
@@ -199,7 +199,7 @@ async def sipclear(ctx, sips:int=None, mention=None):
     print('trying to sipclear over here')
     cursor, mydb = get_mysql_db()
     
-	# Setup the correct user variable
+    # Setup the correct user variable
     if mention is not None:
         member = get_proper_member(mention)
         user = bot.get_user(member.id)
@@ -213,23 +213,23 @@ async def sipclear(ctx, sips:int=None, mention=None):
         areYouEvenSippinThough(ctx, cursor, mydb)
         return
     
-	# Setup the newTotal Variable that we will later put into the database
-	if sips:
-		# Check if user has cleared more sips that currently in database and lower it
-		if sips > record[0]: 
-			sips = record[0]
-		newTotal = 'CurrentTotal - ' + str(sips)
-	else:
-		newTotal = '0'
-	
+    # Setup the newTotal Variable that we will later put into the database
+    if sips:
+        # Check if user has cleared more sips that currently in database and lower it
+        if sips > record[0]: 
+            sips = record[0]
+        newTotal = 'CurrentTotal - ' + str(sips)
+    else:
+        newTotal = '0'
+    
     cursor.execute("UPDATE sips SET CurrentTotal = " + newTotal + " WHERE Username IN ('" + str(user) + "')")
     close_mysql_db(mydb=mydb, cursor=cursor, commit=True)
-	
-	# Display information back to user 
-	if sips:
+    
+    # Display information back to user 
+    if sips:
         await ctx.send(str(user) + "'s sips have been cleared")
-	else:
-	    await ctx.send(str(user) + "'s sips have been lowered by " + str(sips))
+    else:
+        await ctx.send(str(user) + "'s sips have been lowered by " + str(sips))
 
 @bot.event
 async def on_ready():
