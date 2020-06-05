@@ -9,8 +9,8 @@ bot = commands.Bot(command_prefix='$')
 youtube_dl.utils.bug_reports_message = lambda: ''
 
 ytdl_options = {
-	'username': Config.ytldusername,
-	'password': Config.ytldpassword,
+	'username': Config.ytdlusername,
+	'password': Config.ytdlpassword,
     'format': 'bestaudio/best',
     'outtmpl': '%(extractor)s-%(id)s-%(title)s.%(ext)s',
     'restrictfilenames': True,
