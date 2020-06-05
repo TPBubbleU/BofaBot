@@ -45,8 +45,7 @@ async def sipadd(ctx, sips: int, mention=None):
 
     # If there is a Mention we need to make sure the user is setup in the database
     if mention is not None:
-        member = bofautility.get_proper_member(bot, mention)
-        user = bot.get_user(member.id)
+        user = bot.get_user(re.sub(re.compile('[<>@!]'), "", mention))
         
         if not(str(user) in usernames):
             print("Setting up User in the database")
@@ -115,8 +114,7 @@ async def mysips(ctx, mention=None):
 
     # Setup the correct user variable
     if mention is not None:
-        member = bofautility.get_proper_member(bot, mention)
-        user = bot.get_user(member.id)
+        user = bot.get_user(re.sub(re.compile('[<>@!]'), "", mention))
     else:
         user = str(ctx.author)
 
@@ -139,8 +137,7 @@ async def sipclear(ctx, sips:int=None, mention=None):
     
     # Setup the correct user variable
     if mention is not None:
-        member = bofautility.get_proper_member(bot, mention)
-        user = bot.get_user(member.id)
+        user = bot.get_user(re.sub(re.compile('[<>@!]'), "", mention))
     else:
         user = str(ctx.author)
 
