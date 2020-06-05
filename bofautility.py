@@ -8,8 +8,9 @@ def get_proper_channel(channel_name):
 
 
 def get_proper_member(bot, mentionstr):
+	print("Trying to find" + mentionstr)
     for guild in bot.guilds:
-        print(guild)
+		print("Looking at the guild of " + str(guild))
         for member in guild.members:
             print(member)
             if mentionstr == member.mention:
