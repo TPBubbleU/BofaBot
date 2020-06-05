@@ -9,7 +9,9 @@ def get_proper_channel(channel_name):
 
 def get_proper_member(bot, mentionstr):
     for guild in bot.guilds:
+        print(guild)
         for member in guild.members:
+            print(member)
             if mentionstr == member.mention:
                 return member
     else:
