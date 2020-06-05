@@ -10,7 +10,7 @@ def get_proper_channel(channel_name):
 def get_proper_member(bot, mentionstr):
     for i in bot.get_all_members():
         if mentionstr == i.mention:
-            return
+            return i 
     else:
         print("Something went wrong you shouldn't have got here")
 
