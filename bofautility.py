@@ -11,8 +11,8 @@ def get_proper_member(bot, mentionstr):
     for guild in bot.guilds:
         print("Looking at the guild of " + str(guild))
         for member in guild.members:
-            print(str(member) + " has the mention of " + str(member.mention) )
-            if re.sub(re.compile('[<>@!]'), "",mentionstr) == re.sub(re.compile('[<>@!]'), "",member.mention):
+            print(str(member) + " has the mention of " + str(member.mention) + " and the id of " + str(member.id))
+            if re.sub(re.compile('[<>@!]'), "", mentionstr) == re.sub(re.compile('[<>@!]'), "", member.mention):
                 return member
     else:
         print("Something went wrong you shouldn't have got here")
