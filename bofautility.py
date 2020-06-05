@@ -1,5 +1,4 @@
-import Config
-import discord, mysql.connector
+import Config, discord, mysql.connector, re
 
 def get_proper_channel(channel_name):
     for channel in bot.get_all_channels():
@@ -13,7 +12,7 @@ def get_proper_member(bot, mentionstr):
         print("Looking at the guild of " + str(guild))
         for member in guild.members:
             print(str(member) + " has the mention of " + str(member.mention) )
-            if mentionstr == member.mention:
+            if re.sub(re.compile('[<>@!]'), "",mentionstr) == re.sub(re.compile('[<>@!]'), "",member.mention):
                 return member
     else:
         print("Something went wrong you shouldn't have got here")
