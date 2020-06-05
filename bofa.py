@@ -2,35 +2,10 @@ import Config
 import discord, asyncio, time, re, mysql.connector
 from datetime import datetime 
 from discord.ext import commands
+import bofautility 
+
 
 bot = commands.Bot(command_prefix='!')
-
-def get_proper_channel(channel_name):
-    for channel in bot.get_all_channels():
-        if channel.name == channel_name and channel.type is discord.ChannelType.voice:
-            return channel
-
-
-def get_proper_member(mentionstr):
-    for i in bot.get_all_members():
-        if mentionstr == i.mention:
-            return
-    else:
-        print("Something went wrong you shouldn't have got here")
-
-
-def get_mysql_db():
-    mydb =  mysql.connector.connect(host=Config.mysqlhost, user=Config.mysqluser, passwd=Config.mysqlpasswd)
-    cursor = mydb.cursor()
-    cursor.execute("USE discord;")
-    return cursor, mydb
-
-
-def close_mysql_db(mydb, cursor, commit):
-    if commit:
-        mydb.commit()
-    cursor.close()
-    mydb.close()
 
 
 async def areYouEvenSippinThough(ctx, cursor, mydb):
@@ -54,13 +29,13 @@ async def areYouEvenSippinThough(ctx, cursor, mydb):
     except asyncio.TimeoutError:
         print('We timed out on the question "Are you even sippin though?"')
     await ctx.send("I guess you aren't sippin then")
-    close_mysql_db(mydb=mydb, cursor=cursor, commit=True)
+    bofautility.close_mysql_db(mydb=mydb, cursor=cursor, commit=True)
 
 
 @bot.command()
 async def sipadd(ctx, sips: int, mention=None):
     print('Trying to sipadd over here')
-    cursor, mydb = get_mysql_db()
+    cursor, mydb = bofautility.get_mysql_db()
     
     # Get sip data from the database
     cursor.execute("SELECT DISTINCT Username, CurrentTotal, TIMESTAMPDIFF(HOUR,last_sip,CURRENT_TIMESTAMP) FROM sips")
@@ -70,7 +45,7 @@ async def sipadd(ctx, sips: int, mention=None):
 
     # If there is a Mention we need to make sure the user is setup in the database
     if mention is not None:
-        member = get_proper_member(mention)
+        member = bofautility.get_proper_member(mention)
         user = bot.get_user(member.id)
         
         if not(str(user) in usernames):
@@ -80,7 +55,7 @@ async def sipadd(ctx, sips: int, mention=None):
     # Lets early exit if there isn't a mention and no one has a last sip in the last 5 hours
     if mention is None and not last5HoursUsers:
         await ctx.send("Nobody currently sippin though")
-        return close_mysql_db(mydb=mydb, cursor=cursor, commit=False)
+        return bofautility.close_mysql_db(mydb=mydb, cursor=cursor, commit=False)
 
     # Lets add some sips
     
@@ -94,13 +69,13 @@ async def sipadd(ctx, sips: int, mention=None):
         cursor.execute("UPDATE sips SET CurrentTotal = CurrentTotal + " + str(sips) + " WHERE Username IN ('" + "','".join(last5HoursUsers) + "')")
         cursor.execute("UPDATE sips SET last_sip = now() WHERE Username IN ('" + "','".join(last5HoursUsers) + "')")
         await ctx.send(str(sips) + " sips added to " + " and ".join(last5HoursUsers))
-    close_mysql_db(mydb=mydb, cursor=cursor, commit=True)
+    bofautility.close_mysql_db(mydb=mydb, cursor=cursor, commit=True)
     
     
 @bot.command()
 async def whosesippin(ctx):
     print('Trying to see whose sipping over here')
-    cursor, mydb = get_mysql_db()
+    cursor, mydb = bofautility.get_mysql_db()
     
     # Get sip data from the database
     cursor.execute("SELECT Username FROM sips")
@@ -130,17 +105,17 @@ async def whosesippin(ctx):
                 cursor.execute("UPDATE sips SET last_sip = now()")
     except asyncio.TimeoutError:
         await ctx.send("I've got the following users as Sippin " + " and ".join(CurrentSippers))
-    close_mysql_db(mydb=mydb, cursor=cursor, commit=True)
+    bofautility.close_mysql_db(mydb=mydb, cursor=cursor, commit=True)
     
     
 @bot.command()
 async def mysips(ctx, mention=None):
     print('Trying to check someones sips')
-    cursor, mydb = get_mysql_db()
+    cursor, mydb = bofautility.get_mysql_db()
 
     # Setup the correct user variable
     if mention is not None:
-        member = get_proper_member(mention)
+        member = bofautility.get_proper_member(mention)
         user = bot.get_user(member.id)
     else:
         user = str(ctx.author)
@@ -154,17 +129,17 @@ async def mysips(ctx, mention=None):
         
     # Display information back out
     await ctx.send(str(user) + " sips are currently at " + str(record[0]))
-    close_mysql_db(mydb=mydb, cursor=cursor, commit=False)
+    bofautility.close_mysql_db(mydb=mydb, cursor=cursor, commit=False)
     
 
 @bot.command()
 async def sipclear(ctx, sips:int=None, mention=None):
     print('trying to sipclear over here')
-    cursor, mydb = get_mysql_db()
+    cursor, mydb = bofautility.get_mysql_db()
     
     # Setup the correct user variable
     if mention is not None:
-        member = get_proper_member(mention)
+        member = bofautility.get_proper_member(mention)
         user = bot.get_user(member.id)
     else:
         user = str(ctx.author)
@@ -186,7 +161,7 @@ async def sipclear(ctx, sips:int=None, mention=None):
         newTotal = '0'
     
     cursor.execute("UPDATE sips SET CurrentTotal = " + newTotal + " WHERE Username IN ('" + str(user) + "')")
-    close_mysql_db(mydb=mydb, cursor=cursor, commit=True)
+    bofautility.close_mysql_db(mydb=mydb, cursor=cursor, commit=True)
     
     # Display information back to user 
     if sips:

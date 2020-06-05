@@ -2,7 +2,7 @@ import Config
 import discord, time, re, asyncio
 from discord.ext import commands
 import youtube_dl, mysql.connector
-from bofa import get_mysql_db, close_mysql_db
+import bofautility 
 
 bot = commands.Bot(command_prefix='$')
 
@@ -62,10 +62,10 @@ async def on_message(message):
         m1 = re.compile('url=([^\s]*)').search(message.content)
         m2 = re.compile('playtime=([^\s]*)').search(message.content)
         if m1 and m2:
-            cursor, mydb = get_mysql_db()
+            cursor, mydb = bofautility.get_mysql_db()
             cursor.execute('DELETE FROM walkon WHERE username = "' + str(message.author) + '"')
             cursor.execute('INSERT INTO walkon VALUES("' + str(message.author) + '","' + m1.group(1) + '",' + m2.group(1) + ')')
-            close_mysql_db(mydb=mydb, cursor=cursor, commit=False)
+            bofautility.close_mysql_db(mydb=mydb, cursor=cursor, commit=False)
             await message.channel.send('I got you')
     elif 'bofa' in message.content:
         await message.channel.send('Whats bofa?')
@@ -77,17 +77,17 @@ async def on_voice_state_update(member, before, after):
     if before.channel is None and after.channel is voice_channel and member != bot.user:
         print('User ' + str(member) + ' has joined the channel')
 
-        cursor, mydb = get_mysql_db()
+        cursor, mydb = bofautility.get_mysql_db()
         cursor.execute("SELECT url, playtime FROM walkon WHERE username = '" + str(member) + "'")
         record = cursor.fetchone()
         if not record:
             print("No record on file for User")
-            close_mysql_db(mydb=mydb, cursor=cursor, commit=False)
+            bofautility.close_mysql_db(mydb=mydb, cursor=cursor, commit=False)
             return
             
         url = record[0]
         playtime = record[1]
-        close_mysql_db(mydb=mydb, cursor=cursor, commit=False)
+        bofautility.close_mysql_db(mydb=mydb, cursor=cursor, commit=False)
 
         for i in bot.voice_clients:
             await i.disconnect()
