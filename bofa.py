@@ -14,7 +14,7 @@ def get_proper_channel(channel_name):
 def get_proper_member(mentionstr):
     for i in bot.get_all_members():
         if mentionstr == i.mention:
-            return i
+            return is
     else:
         print("Something went wrong you shouldn't have got here")
 
@@ -87,12 +87,12 @@ async def sipadd(ctx, sips: int, mention=None):
     # Doing things for a single sipper
     if mention is not None:
         cursor.execute("UPDATE sips SET CurrentTotal = CurrentTotal + " + str(sips) + " WHERE Username IN ('" + str(user) + "')")
-		cursor.execute("UPDATE sips SET last_sip = now() WHERE Username IN ('" + str(user) + "')")
+        cursor.execute("UPDATE sips SET last_sip = now() WHERE Username IN ('" + str(user) + "')")
         await ctx.send(str(sips) + " sips added to " + mention)
     # Doing things for all sippers
     else:
         cursor.execute("UPDATE sips SET CurrentTotal = CurrentTotal + " + str(sips) + " WHERE Username IN ('" + "','".join(last5HoursUsers) + "')")
-		cursor.execute("UPDATE sips SET last_sip = now() WHERE Username IN ('" + "','".join(last5HoursUsers) + "')")
+        cursor.execute("UPDATE sips SET last_sip = now() WHERE Username IN ('" + "','".join(last5HoursUsers) + "')")
         await ctx.send(str(sips) + " sips added to " + " and ".join(last5HoursUsers))
     close_mysql_db(mydb=mydb, cursor=cursor, commit=True)
     
@@ -190,7 +190,7 @@ async def sipclear(ctx, sips:int=None, mention=None):
     
     # Display information back to user 
     if sips:
-	    await ctx.send(str(user) + "'s sips have been lowered by " + str(sips))
+        await ctx.send(str(user) + "'s sips have been lowered by " + str(sips))
     else:
         await ctx.send(str(user) + "'s sips have been cleared")
 
