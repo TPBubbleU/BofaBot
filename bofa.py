@@ -14,7 +14,7 @@ def get_proper_channel(channel_name):
 def get_proper_member(mentionstr):
     for i in bot.get_all_members():
         if mentionstr == i.mention:
-            return is
+            return
     else:
         print("Something went wrong you shouldn't have got here")
 
