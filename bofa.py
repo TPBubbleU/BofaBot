@@ -96,12 +96,12 @@ async def whosesippin(ctx):
             
                 # Lets get them added to the count table
                 if not (str(user) not in sippers):
-                    print("adding user " + str(user) + " into sips table")
+                    print("Adding user " + str(user) + " into sips table")
                     cursor.execute("INSERT INTO sips VALUES ('" + str(user) + "', 0, now())")
                 
                 CurrentSippers.append(str(user))
             
-                print("Adding user " + str(user) + " to the sippin table")
+                print("Updating user's " + str(user) + " last sip")
                 cursor.execute("UPDATE sips SET last_sip = now()")
     except asyncio.TimeoutError:
         await ctx.send("I've got the following users as Sippin " + " and ".join(CurrentSippers))
@@ -122,7 +122,7 @@ async def mysips(ctx, mention=None):
 
     # Get database information
     cursor.execute("SELECT CurrentTotal FROM sips WHERE Username = '" + str(user) + "'")
-    record = cursor.fetchone()
+    record = cursor.fetchall()[0]
     if not record:
         areYouEvenSippinThough(ctx, cursor, mydb)
         return
@@ -146,7 +146,7 @@ async def sipclear(ctx, sips:int=None, mention=None):
 
     # Get database information
     cursor.execute("SELECT CurrentTotal FROM sips WHERE Username = '" + str(user) + "'")
-    record = cursor.fetchone()
+    record = cursor.fetchall()[0]
     if not record:
         areYouEvenSippinThough(ctx, cursor, mydb)
         return
