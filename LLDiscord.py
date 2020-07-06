@@ -1,3 +1,4 @@
+import Config
 import discord, re
 from datetime import datetime 
 from discord.ext import commands
@@ -5,6 +6,7 @@ from LL import LLGame
 
 bot = commands.Bot(command_prefix='!', case_insensitive=True)
 game = None
+channel = None
 
 async def SendMessages(ctx):
 	messages = [i['message'] for i in game.messages if i['who'] == 'all']
@@ -22,6 +24,7 @@ async def SendMessages(ctx):
              description="Start a new game of Love Letter. Use the keyword premium to play with the premium cards")
 async def NewGame(ctx, *args):
 	global game
+	global channel
 	users = []
 	premium = False
 	for arg in args:
@@ -62,4 +65,4 @@ async def CardDescription(ctx):
 async def on_ready():
 	print('Logged on as', bot.user)
 
-bot.run('NzIzNjg3MDk4NzQxNDI0MTI4.Xu1ThQ.Zak5si1nJI1PyglinUTPAzKuMM0')
+bot.run(Config.Token)
